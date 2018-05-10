@@ -3,6 +3,7 @@ pragma solidity ^0.4.23;
 import "./StringUtils.sol";
 import "./LicenseContractLib.sol";
 
+
 contract LicenseContract {
 
     using LicenseContractLib for LicenseContractLib.Issuance[];
@@ -360,11 +361,10 @@ contract LicenseContract {
         // been signed. Thus disallow issuing licenses.
         require(signature.length != 0);
         require(msg.value >= issuanceFee);
-        uint256 issuanceNumber =
-                                      issuances.insert(licenseDescription,
-                                                       licenseCode,
-                                                       auditTime,
-                                                       auditRemark);
+        uint256 issuanceNumber = issuances.insert(licenseDescription,
+                                                  licenseCode,
+                                                  auditTime,
+                                                  auditRemark);
         relevantIssuances[initialOwnerAddress].push(issuanceNumber);
         issuances.createInitialLicenses(issuanceNumber,
                                         numLicenses,
@@ -484,7 +484,8 @@ contract LicenseContract {
         uint256 issuanceNumber,
         address owner
     ) external constant returns (uint64) {
-        LicenseContractLib.Issuance issuance = issuances[issuanceNumber];
+        LicenseContractLib.Issuance storage issuance =
+                                            issuances[issuanceNumber];
         return issuance.balance[owner][owner] +
                issuance.temporaryBalance[owner];
     }
