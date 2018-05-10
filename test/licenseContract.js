@@ -134,7 +134,7 @@ contract("LicenseContract constructor", function(accounts) {
     return LicenseContract.deployed().then(function(instance) {
       return instance.issuerName();
     }).then(function(name) {
-      assert.equal(name.valueOf(), "Soft&Cloud");
+      assert.equal(name.valueOf(), "Itsa me");
     });
   });
 

@@ -1,6 +1,8 @@
 pragma solidity ^0.4.23;
 
+
 library LicenseContractLib {
+
     struct Issuance {
         /*
          * A human-readable description of the type of license managed by this
@@ -97,18 +99,38 @@ library LicenseContractLib {
     // Mirror event declarations from LicenseContract to allow them to be 
     // emitted from the library
     event Issuing(uint256 issuanceNumber);
-    event Transfer(uint256 indexed issuanceNumber, address indexed from, address indexed to, uint64 amount, bool temporary);
-    event Reclaim(uint256 indexed issuanceNumber, address indexed from, address indexed to, uint64 amount);
+    event Transfer(uint256 indexed issuanceNumber,
+                   address indexed from,
+                   address indexed to,
+                   uint64 amount,
+                   bool temporary);
+    event Reclaim(uint256 indexed issuanceNumber,
+                  address indexed from,
+                  address indexed to,
+                  uint64 amount);
 
     /**
      * Insert a new issuance with the given parameters into the array. Due to 
      * technical limitations, this does not set original supply nor initalises
      * the balances mapping.
      */
-    function insert(Issuance[] storage issuances, string description, string code, uint32 auditTime, string auditRemark) public returns (uint256) {
+    function insert(
+        Issuance[] storage issuances,
+        string description,
+        string code,
+        uint32 auditTime,
+        string auditRemark
+    ) public returns (uint256) {
         // Passing originalSupply would exceed the number of allowed parameters
         // it is thus set in `createInitialLicenses`.
-        return issuances.push(Issuance(description, code, /*originalSupply*/0, auditTime, auditRemark, /*revoked*/false, /*revocationReason*/"")) - 1;
+        return issuances.push(Issuance(description,
+            code,
+            /*originalSupply*/0,
+            auditTime,
+            auditRemark,
+            /*revoked*/false,
+            /*revocationReason*/"")
+        ) - 1;
     }
 
     /**
@@ -116,28 +138,55 @@ library LicenseContractLib {
      * issuance number and assign `initialOwnerAddress` all initial licenses. 
      * This also emits all corresponding events.
      */
-    function createInitialLicenses(Issuance[] storage issuances, uint256 issuanceNumber, uint64 originalSupply, address initialOwnerAddress) public returns (uint256) {
-        var issuance = issuances[issuanceNumber];
+    function createInitialLicenses(
+        Issuance[] storage issuances,
+        uint256 issuanceNumber,
+        uint64 originalSupply,
+        address initialOwnerAddress
+    ) public returns (uint256) {
+        Issuance storage issuance = issuances[issuanceNumber];
+        
         issuance.originalSupply = originalSupply;
-        issuances[issuanceNumber].balance[initialOwnerAddress][initialOwnerAddress] = originalSupply;
-        Issuing(issuanceNumber);
-        Transfer(issuanceNumber, 0x0, initialOwnerAddress, originalSupply, /*temporary*/false);
+        issuances[issuanceNumber]
+            .balance[initialOwnerAddress][initialOwnerAddress] 
+                = originalSupply;
+
+        emit Issuing(issuanceNumber);
+        emit Transfer(issuanceNumber,
+                      0x0,
+                      initialOwnerAddress,
+                      originalSupply,
+                      /*temporary*/false);
         return issuanceNumber;
     }
 
-    function transferFromMessageSender(Issuance[] storage issuances, uint256 issuanceNumber, address to, uint64 amount) internal {
-        var issuance = issuances[issuanceNumber];
+    function transferFromMessageSender(
+        Issuance[] storage issuances,
+        uint256 issuanceNumber,
+        address to,
+        uint64 amount
+    ) internal {
+        Issuance storage issuance = issuances[issuanceNumber];
         require(!issuance.revoked);
         require(issuance.balance[msg.sender][msg.sender] >= amount);
 
         issuance.balance[msg.sender][msg.sender] -= amount;
         issuance.balance[to][to] += amount;
 
-        Transfer(issuanceNumber, /*from*/msg.sender, to, amount, /*temporary*/false);
+        emit Transfer(issuanceNumber,
+                      /*from*/msg.sender,
+                      to,
+                      amount,
+                      /*temporary*/false);
     }
 
-    function transferTemporarilyFromMessageSender(Issuance[] storage issuances, uint256 issuanceNumber, address to, uint64 amount) internal {
-        var issuance = issuances[issuanceNumber];
+    function transferTemporarilyFromMessageSender(
+        Issuance[] storage issuances,
+        uint256 issuanceNumber,
+        address to,
+        uint64 amount
+    ) internal {
+        Issuance storage issuance = issuances[issuanceNumber];
         require(!issuance.revoked);
         require(issuance.balance[msg.sender][msg.sender] >= amount);
         require(to != msg.sender);
@@ -147,11 +196,20 @@ library LicenseContractLib {
         issuance.temporaryBalance[to] += amount;
         issuance.temporaryLicenseHolders[msg.sender].push(to);
 
-        Transfer(issuanceNumber, /*from*/msg.sender, to, amount, /*temporary*/true);
+        emit Transfer(issuanceNumber,
+                      /*from*/msg.sender,
+                      to,
+                      amount,
+                      /*temporary*/true);
     }
 
-    function reclaimToSender(Issuance[] storage issuances, uint256 issuanceNumber, address from, uint64 amount) public {
-        var issuance = issuances[issuanceNumber];
+    function reclaimToSender(
+        Issuance[] storage issuances,
+        uint256 issuanceNumber,
+        address from,
+        uint64 amount
+    ) public {
+        Issuance storage issuance = issuances[issuanceNumber];
         require(!issuance.revoked);
         require(issuance.balance[from][msg.sender] >= amount);
         require(from != msg.sender);
@@ -160,6 +218,6 @@ library LicenseContractLib {
         issuance.balance[msg.sender][msg.sender] += amount;
         issuance.temporaryBalance[from] -= amount;
 
-        Reclaim(issuanceNumber, from, /*to*/msg.sender, amount);
+        emit Reclaim(issuanceNumber, from, /*to*/msg.sender, amount);
     }
 }

@@ -3,6 +3,7 @@ pragma solidity ^0.4.23;
 import "./StringUtils.sol";
 import "./LicenseContractLib.sol";
 
+
 contract LicenseContract {
 
     using LicenseContractLib for LicenseContractLib.Issuance[];
@@ -257,9 +258,7 @@ contract LicenseContract {
         liability = _liability;
         issuerSSLCertificate = _issuerSSLCertificate;
         safekeepingPeriod = _safekeepingPeriod;
-        
         lobRoot = msg.sender;
-
         issuanceFee = _issuanceFee;
         emit IssuanceFeeChange(_issuanceFee);
     }
@@ -275,7 +274,7 @@ contract LicenseContract {
      *         the given parameters
      */
     function certificateText() external constant returns (string) {
-        var s = StringUtils.concat(
+        string memory s = StringUtils.concat(
             "Wir, ",
             issuerName,
             ", erklären hiermit,\n\ndass wir unter dem Ethereum Smart Contract mit der Ethereum-Adresse „",
@@ -362,11 +361,10 @@ contract LicenseContract {
         // been signed. Thus disallow issuing licenses.
         require(signature.length != 0);
         require(msg.value >= issuanceFee);
-        var issuanceNumber = issuances.insert(licenseDescription,
-                                              licenseCode,
-                                              auditTime,
-                                              auditRemark);
-
+        uint256 issuanceNumber = issuances.insert(licenseDescription,
+                                                  licenseCode,
+                                                  auditTime,
+                                                  auditRemark);
         relevantIssuances[initialOwnerAddress].push(issuanceNumber);
         issuances.createInitialLicenses(issuanceNumber,
                                         numLicenses,
@@ -486,7 +484,8 @@ contract LicenseContract {
         uint256 issuanceNumber,
         address owner
     ) external constant returns (uint64) {
-        var issuance = issuances[issuanceNumber];
+        LicenseContractLib.Issuance storage issuance =
+                                            issuances[issuanceNumber];
         return issuance.balance[owner][owner] +
                issuance.temporaryBalance[owner];
     }
