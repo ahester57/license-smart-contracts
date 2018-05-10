@@ -111,7 +111,8 @@ contract RootContract {
         uint8 safekeepingPeriod,
         bytes issuerSSLCertificate
     ) external notDisabled returns (address) {
-        var licenseContractAddress = new LicenseContract(
+        LicenseContract licenseContractAddress =
+                                        new LicenseContract(
                                             msg.sender,
                                             issuerName,
                                             liability,
