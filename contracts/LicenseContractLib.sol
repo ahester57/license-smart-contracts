@@ -105,10 +105,23 @@ library LicenseContractLib {
      * technical limitations, this does not set original supply nor initalises
      * the balances mapping.
      */
-    function insert(Issuance[] storage issuances, string description, string code, uint32 auditTime, string auditRemark) public returns (uint256) {
+    function insert(
+        Issuance[] storage issuances,
+        string description,
+        string code,
+        uint32 auditTime,
+        string auditRemark
+    ) public returns (uint256) {
         // Passing originalSupply would exceed the number of allowed parameters
         // it is thus set in `createInitialLicenses`.
-        return issuances.push(Issuance(description, code, /*originalSupply*/0, auditTime, auditRemark, /*revoked*/false, /*revocationReason*/"")) - 1;
+        return issuances.push(Issuance(description,
+            code,
+            /*originalSupply*/0,
+            auditTime,
+            auditRemark,
+            /*revoked*/false,
+            /*revocationReason*/"")
+        ) - 1;
     }
 
     /**
@@ -120,8 +133,8 @@ library LicenseContractLib {
         var issuance = issuances[issuanceNumber];
         issuance.originalSupply = originalSupply;
         issuances[issuanceNumber].balance[initialOwnerAddress][initialOwnerAddress] = originalSupply;
-        Issuing(issuanceNumber);
-        Transfer(issuanceNumber, 0x0, initialOwnerAddress, originalSupply, /*temporary*/false);
+        emit Issuing(issuanceNumber);
+        emit Transfer(issuanceNumber, 0x0, initialOwnerAddress, originalSupply, /*temporary*/false);
         return issuanceNumber;
     }
 
@@ -133,7 +146,7 @@ library LicenseContractLib {
         issuance.balance[msg.sender][msg.sender] -= amount;
         issuance.balance[to][to] += amount;
 
-        Transfer(issuanceNumber, /*from*/msg.sender, to, amount, /*temporary*/false);
+        emit Transfer(issuanceNumber, /*from*/msg.sender, to, amount, /*temporary*/false);
     }
 
     function transferTemporarilyFromMessageSender(Issuance[] storage issuances, uint256 issuanceNumber, address to, uint64 amount) internal {
@@ -147,7 +160,7 @@ library LicenseContractLib {
         issuance.temporaryBalance[to] += amount;
         issuance.temporaryLicenseHolders[msg.sender].push(to);
 
-        Transfer(issuanceNumber, /*from*/msg.sender, to, amount, /*temporary*/true);
+        emit Transfer(issuanceNumber, /*from*/msg.sender, to, amount, /*temporary*/true);
     }
 
     function reclaimToSender(Issuance[] storage issuances, uint256 issuanceNumber, address from, uint64 amount) public {
@@ -160,6 +173,6 @@ library LicenseContractLib {
         issuance.balance[msg.sender][msg.sender] += amount;
         issuance.temporaryBalance[from] -= amount;
 
-        Reclaim(issuanceNumber, from, /*to*/msg.sender, amount);
+        emit Reclaim(issuanceNumber, from, /*to*/msg.sender, amount);
     }
 }

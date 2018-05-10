@@ -4,6 +4,7 @@ import "./LicenseContract.sol";
 
 contract RootContract {
 
+    ///@dev @TODO implement RBAC
     /**
      * Assert that the message is sent by the root contract's owner 
      */
@@ -104,10 +105,21 @@ contract RootContract {
      *                             contract's documentation on the requirements 
      *                             of this certificate
      */
-    function createLicenseContract(string issuerName, string liability, uint8 safekeepingPeriod, bytes issuerSSLCertificate) external notDisabled returns (address) {
-        var licenseContractAddress = new LicenseContract(msg.sender, issuerName, liability, safekeepingPeriod, issuerSSLCertificate, defaultIssuanceFee);
+    function createLicenseContract(
+        string issuerName,
+        string liability,
+        uint8 safekeepingPeriod,
+        bytes issuerSSLCertificate
+    ) external notDisabled returns (address) {
+        var licenseContractAddress = new LicenseContract(
+                                            msg.sender,
+                                            issuerName,
+                                            liability,
+                                            safekeepingPeriod,
+                                            issuerSSLCertificate,
+                                            defaultIssuanceFee);
         licenseContracts.push(licenseContractAddress);
-        LicenseContractCreation(licenseContractAddress);
+        emit LicenseContractCreation(licenseContractAddress);
         return licenseContractAddress;
     }
 
@@ -138,7 +150,10 @@ contract RootContract {
      * @param newFee The new fee that shall be required for every license 
      *               issuing done through this license contract
      */
-    function setLicenseContractIssuanceFee(address licenseContractAddress, uint128 newFee) external onlyOwner {
+    function setLicenseContractIssuanceFee(
+        address licenseContractAddress,
+        uint128 newFee
+    ) external onlyOwner {
         LicenseContract(licenseContractAddress).setIssuanceFee(newFee);
     }
 
@@ -152,7 +167,9 @@ contract RootContract {
      * @param newDefaultFee The new default issuance fee that shall be set on 
      *                      every newly created license contract
      */
-    function setDefaultIssuanceFee(uint128 newDefaultFee) external onlyOwner {
+    function setDefaultIssuanceFee(
+        uint128 newDefaultFee
+    ) external onlyOwner {
         defaultIssuanceFee = newDefaultFee;
     }
 
@@ -171,8 +188,13 @@ contract RootContract {
      *               license contract
      * @param recipient The address to which the withdrawn Wei should be sent
      */
-    function withdrawFromLicenseContract(address licenseContractAddress, uint256 amount, address recipient) external onlyOwner {
-        LicenseContract(licenseContractAddress).withdraw(amount, recipient);
+    function withdrawFromLicenseContract(
+        address licenseContractAddress,
+        uint256 amount,
+        address recipient
+    ) external onlyOwner {
+        LicenseContract(licenseContractAddress)
+        .withdraw(amount, recipient);
     }
 
     // Managing root contract
@@ -200,7 +222,7 @@ contract RootContract {
      */
     function disable() external onlyOwner {
         disabled = true;
-        Disabling();
+        emit Disabling();
     }
 
     /**
@@ -214,7 +236,11 @@ contract RootContract {
      *                               which control should be taken over
      * @param managerAddress The address that shall manage the license contract
      */
-    function takeOverLicenseContractControl(address licenseContractAddress, address managerAddress) external onlyOwner {
-        LicenseContract(licenseContractAddress).takeOverManagementControl(managerAddress);
+    function takeOverLicenseContractControl(
+        address licenseContractAddress,
+        address managerAddress
+    ) external onlyOwner {
+        LicenseContract(licenseContractAddress)
+        .takeOverManagementControl(managerAddress);
     }
 }
