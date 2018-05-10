@@ -145,10 +145,18 @@ library LicenseContractLib {
         address initialOwnerAddress
     ) public returns (uint256) {
         Issuance storage issuance = issuances[issuanceNumber];
+        
         issuance.originalSupply = originalSupply;
-        issuances[issuanceNumber].balance[initialOwnerAddress][initialOwnerAddress] = originalSupply;
+        issuances[issuanceNumber]
+            .balance[initialOwnerAddress][initialOwnerAddress] 
+                = originalSupply;
+
         emit Issuing(issuanceNumber);
-        emit Transfer(issuanceNumber, 0x0, initialOwnerAddress, originalSupply, /*temporary*/false);
+        emit Transfer(issuanceNumber,
+                      0x0,
+                      initialOwnerAddress,
+                      originalSupply,
+                      /*temporary*/false);
         return issuanceNumber;
     }
 
@@ -165,7 +173,11 @@ library LicenseContractLib {
         issuance.balance[msg.sender][msg.sender] -= amount;
         issuance.balance[to][to] += amount;
 
-        emit Transfer(issuanceNumber, /*from*/msg.sender, to, amount, /*temporary*/false);
+        emit Transfer(issuanceNumber,
+                      /*from*/msg.sender,
+                      to,
+                      amount,
+                      /*temporary*/false);
     }
 
     function transferTemporarilyFromMessageSender(
@@ -184,7 +196,11 @@ library LicenseContractLib {
         issuance.temporaryBalance[to] += amount;
         issuance.temporaryLicenseHolders[msg.sender].push(to);
 
-        emit Transfer(issuanceNumber, /*from*/msg.sender, to, amount, /*temporary*/true);
+        emit Transfer(issuanceNumber,
+                      /*from*/msg.sender,
+                      to,
+                      amount,
+                      /*temporary*/true);
     }
 
     function reclaimToSender(
